@@ -1,44 +1,70 @@
 import { Injectable } from '@nestjs/common';
-<<<<<<< HEAD
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-=======
+import { User, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { Prisma, User } from '@prisma/client';
->>>>>>> 286677c97281a5f40f47ccac0a32b29340f909f0
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
+  constructor(private prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all users`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-<<<<<<< HEAD
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-=======
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
-  const hashedPassword = await bcrypt.hash(data.password, 10);
-  return this.prisma.user.create({
-    data: {
-      ...data,
-      password: hashedPassword,
-    },
-  });
-}
->>>>>>> 286677c97281a5f40f47ccac0a32b29340f909f0
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    return this.prisma.user.create({
+      data: {
+        ...data,
+        password: hashedPassword, // Hash the password before saving
+      },
+    });
+  }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async user(
+    userWhereUniqueInput: Prisma.UserWhereUniqueInput,
+  ): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: userWhereUniqueInput,
+    });
+  }
+
+  async users(params: {
+    skip?: number;
+    take?: number;
+    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.UserOrderByWithRelationInput;
+  }): Promise<User[]> {
+    const { skip, take, where, orderBy } = params;
+    return this.prisma.user.findMany({
+      skip,
+      take,
+      where,
+      orderBy,
+    });
+  }
+
+  async findUserName(username: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { username },
+    });
+  }
+
+  async updateUser(params: {
+    where: Prisma.UserWhereUniqueInput;
+    data: Prisma.UserUpdateInput;
+  }): Promise<User> {
+    const { where, data } = params;
+    const hashedPassword = await bcrypt.hash(String(data.password), 10);
+
+    return this.prisma.user.update({
+      data: {
+        ...data,
+        password: hashedPassword,
+      },
+      where,
+    });
+  }
+
+  async deleteUser(where: Prisma.UserWhereUniqueInput): Promise<User> {
+    return this.prisma.user.delete({
+      where,
+    });
   }
 }

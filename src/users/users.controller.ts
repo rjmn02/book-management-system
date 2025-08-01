@@ -1,34 +1,65 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  Query,
+  Param,
+  Body,
+  NotFoundException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { Prisma } from '@prisma/client';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly userService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: Prisma.UserCreateInput) {
+    return this.userService.createUser(createUserDto);
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('where') where?: string,
+    @Query('orderBy') orderBy?: string,
+  ) {
+    const params: any = {
+      skip: skip ? Number(skip) : 0,
+      take: take ? Number(take) : 10,
+      where: where ? JSON.parse(where) : undefined,
+      orderBy: orderBy ? JSON.parse(orderBy) : undefined,
+    };
+    return this.userService.users(params);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const user = await this.userService.user({ id: String(id) });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: Prisma.UserUpdateInput,
+  ) {
+    return this.userService.updateUser({
+      where: { id: String(id) },
+      data: updateUserDto,
+    });
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async delete(@Param('id') id: string) {
+    const user = await this.userService.user({ id: String(id) });
+    if (!user) throw new NotFoundException('User not found');
+    return this.userService.deleteUser({ id: String(id) });
   }
 }

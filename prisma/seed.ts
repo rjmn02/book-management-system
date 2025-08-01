@@ -1,60 +1,87 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 import * as bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  // Create a default user with a hashed password
-  const hashedPassword = await bcrypt.hash('password123', 10);
-  const user = await prisma.user.create({
-    data: {
+  // Create default user
+  const user = await prisma.user.upsert({
+    where: { username: 'admin' },
+    update: {},
+    create: {
       username: 'admin',
-      password: hashedPassword,
+      password: await bcrypt.hash('password123', 10)
     },
-  });
+  })
+
+  // Create genres
+  const genres = await prisma.genre.createMany({
+    data: [
+      { name: 'Fantasy' },
+      { name: 'Science Fiction' },
+      { name: 'Romance' },
+      { name: 'Mystery' },
+    ],
+    skipDuplicates: true,
+  })
+
+  // Create tags
+  const tags = await prisma.tag.createMany({
+    data: [
+      { name: 'Bestseller' },
+      { name: 'New Release' },
+      { name: 'Classic' },
+    ],
+    skipDuplicates: true,
+  })
 
   // Create authors
   const author1 = await prisma.author.create({
-    data: { firstName: 'Jane', lastName: 'Austen' },
-  });
+    data: {
+      firstName: 'John',
+      middleName: 'M',
+      lastName: 'Smith',
+    },
+  })
+
   const author2 = await prisma.author.create({
-    data: { firstName: 'Mark', lastName: 'Twain' },
-  });
-  const author3 = await prisma.author.create({
-    data: { firstName: 'George', lastName: 'Orwell' },
-  });
+    data: {
+      firstName: 'Jane',
+      lastName: 'Doe',
+    },
+  })
 
-  // Create books with authors
-  await prisma.book.create({
+  // Create books
+  const book1 = await prisma.book.create({
     data: {
-      title: 'Pride and Prejudice',
-      authorId: author1.id,
-      published: new Date('1813-01-28'),
+      title: 'The Great Adventure',
+      published: new Date('2020-01-01'),
+      category: 'BOOK',
+      author: { connect: { id: author1.id } },
+      genres: { connect: [{ name: 'Fantasy' }] },
+      tags: { connect: [{ name: 'Bestseller' }] },
     },
-  });
-  await prisma.book.create({
-    data: {
-      title: 'Adventures of Huckleberry Finn',
-      authorId: author2.id,
-      published: new Date('1884-12-10'),
-    },
-  });
-  await prisma.book.create({
-    data: {
-      title: '1984',
-      authorId: author3.id,
-      published: new Date('1949-06-08'),
-    },
-  });
+  })
 
-  console.log('Seed data created.');
+  const book2 = await prisma.book.create({
+    data: {
+      title: 'Mystery in the Shadows',
+      published: new Date('2021-05-10'),
+      category: 'COMIC',
+      author: { connect: { id: author2.id } },
+      genres: { connect: [{ name: 'Mystery' }] },
+      tags: { connect: [{ name: 'Classic' }] },
+    },
+  })
+
+  console.log('🌱 Database has been seeded. 🌱')
 }
 
 main()
   .catch((e) => {
-    console.error(e);
-    process.exit(1);
+    console.error(e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })

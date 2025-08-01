@@ -22,15 +22,37 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+enum Category {
+  BOOK
+  COMIC
+  MAGAZINE
+}
+
+model Genre {
+  id    String @id @default(uuid())
+  name  String @unique
+  books Book[]
+}
+
+model Tag {
+  id    String @id @default(uuid())
+  name  String @unique
+  books Book[]
+}
+
 model Book {
   id        String    @id @default(uuid())
   authorId  String?
   title     String
   published DateTime?
+  category  Category?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // Relations
   author    Author?  @relation(fields: [authorId], references: [id])
+  genres    Genre[]
+  tags      Tag[]
 }
 
 model Author {
