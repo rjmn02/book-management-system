@@ -97,18 +97,11 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
-## Full Documentation
+## Documentation
 
-Run these terminal commands
-
-#Compodoc Installation
-```bash
-npm i -D @compodoc/compodoc
-```
-
-#Doc Generation 
+1. Run this terminal commands
 ```bash
 npx @compodoc/compodoc -p tsconfig.json -s
 ```
 
-Open your browser and navigate to http://localhost:8080
+2. Open your browser and navigate to http://localhost:8080
