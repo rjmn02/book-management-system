@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Book, Category, Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBookDto } from './create-book-dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class BooksService {
@@ -125,14 +125,12 @@ export class BooksService {
       data: {
         ...bookData,
         tags: {
-          set: [], // Disconnect all existing
           connectOrCreate: tags?.map((name) => ({
             where: { name },
             create: { name },
           })),
         },
         genres: {
-          set: [], // Disconnect all existing
           connectOrCreate: genres?.map((name) => ({
             where: { name },
             create: { name },
